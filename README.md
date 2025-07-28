@@ -1,131 +1,83 @@
-# react-devops-pipeline 
+# DevOps Pipeline Learning
 
-A complete DevOps demonstration project showcasing CI/CD pipeline implementation with security scanning and quality analysis.
 
-## 🏗️ Architecture Overview
+I built this project to learn modern DevOps practices hands-on. 
+
+##  What I Built
+
+I took a React web application I deeveloped and built a complete production-ready DevOps pipeline around it.
 
 ```
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│    BUILD    │───▶│   DOCKER    │───▶│  SONARQUBE  │
-│             │    │             │    │             │
-│ • Vite Build│    │ • Image     │    │ • Code      │
-│ • npm audit │    │ • Trivy     │    │   Quality   │
-│ • Tests     │    │   Security  │    │ • Security  │
-│             │    │   Scan      │    │   Analysis  │
-└─────────────┘    └─────────────┘    └─────────────┘
+My Local Setup → Azure DevOps → Docker → Production Ready
+     ↓              ↓           ↓            ↓
+  React App    →  Pipeline  →  Container → Quality Checks
 ```
 
-## 🛠️ Technology Stack
+##  Tech Stack I Used
 
-- **Frontend**: React + Vite
-- **CI/CD**: Azure DevOps Pipelines
-- **Containerization**: Docker
-- **Security Scanning**: Trivy (container vulnerabilities)
-- **Code Quality**: SonarQube
-- **Infrastructure**: Self-hosted Azure DevOps agent
+- **Frontend**: React + Vite (because it's fast and modern)
+- **CI/CD**: Azure DevOps with my own self-hosted agent
+- **Containerization**: Docker (learned multi-stage builds!)
+- **Security**: Trivy for container scanning
+- **Code Quality**: SonarQube (this was eye-opening)
+- **Infrastructure**: Windows self-hosted agent running locally
 
-## 🔄 Pipeline Stages
+##  The Pipeline I Built
 
 ### Stage 1: Build & Test
-- Node.js 18.x setup
-- Dependency installation
-- Security audit (`npm audit`)
-- Vite build process
-- Artifact publishing
+This is where I start with my React code and make sure everything works:
+- Install Node.js and dependencies
+- Run `npm audit` to catch vulnerable packages
+- Build the app with Vite
+- Save the build artifacts for later stages
 
-### Stage 2: Docker & Security
-- Docker image creation
-- Trivy vulnerability scanning
-- Image tagging with build ID
-- Automated cleanup
+### Stage 2: Docker & Security Scanning
+Here I package everything into a container and scan it for vulnerabilities:
+- Build a Docker image with my React app
+- Run Trivy security scanner on the container
+- Tag images properly for version tracking
+- Clean up afterwards (learned this the hard way when my disk filled up)
 
-### Stage 3: Code Quality
-- SonarQube analysis
-- Security hotspot detection
-- Code coverage reporting
-- Quality gate validation
+### Stage 3: Code Quality Analysis
+This stage humbled me the most:
+- SonarQube analyzes my code for bugs, security issues, and code smells
+- Generates coverage reports (currently 0% - I know, I need tests!)
+- Creates security hotspot reports
+- Sets up quality gates for future improvements
 
-## 🔒 Security Features
 
-- **Container Scanning**: Trivy identifies vulnerabilities in Docker images
-- **Code Analysis**: SonarQube detects security issues and code smells
-- **Secret Management**: Azure DevOps Variable Groups for token security
-- **Automated Auditing**: npm audit for dependency vulnerabilities
+##  Security Features I Implemented
 
-## 📊 Quality Metrics
+I wanted to understand security scanning at multiple levels:
 
-Current project status:
-- **Security Rating**: E (1 critical issue to resolve)
-- **Reliability Rating**: C (75 issues identified)
-- **Maintainability Rating**: A (well-maintained codebase)
-- **Test Coverage**: 0% (tests to be implemented)
-- **Duplications**: 0% (no code duplication)
+- **Container Security**: Trivy scans my Docker images for known vulnerabilities
+- **Code Security**: SonarQube finds potential security issues in my JavaScript
+- **Dependency Security**: npm audit catches vulnerable packages
+- **Secret Management**: Used Azure DevOps Variable Groups (no more hardcoded tokens!)
 
-## 🚀 Getting Started
+
+### Technical Skills
+- **Azure DevOps**: Setting up agents, managing variable groups, creating pipelines
+- **Docker**: Multi-stage builds, optimization, security considerations
+- **Security Tools**: Trivy for containers, SonarQube for code analysis
+- **Pipeline as Code**: Everything defined in YAML and version controlled
+
+
+
+
+##  How to Run This Yourself
+
+If you want to recreate this learning experience:
 
 ### Prerequisites
-- Azure DevOps account
-- Self-hosted Azure DevOps agent
-- Docker installed
-- SonarQube running locally
+- Azure DevOps account (free tier works)
+- Docker installed locally
 - Node.js 18.x
+- A Windows machine for the self-hosted agent (or adapt for Linux)
 
-### Setup Instructions
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/tarkov-helper-devops
-   cd tarkov-helper-devops
-   ```
-
-2. **Set up SonarQube**
-   ```bash
-   docker run -d --name sonarqube -p 9000:9000 sonarqube:latest
-   ```
-
-3. **Configure Azure DevOps**
-   - Import the `azure-pipelines.yml`
-   - Set up Variable Group `Local-Secrets` with `SONAR_TOKEN`
-   - Configure self-hosted agent
-
-4. **Run the pipeline**
-   - Push changes to trigger the pipeline
-   - Monitor results in Azure DevOps
-
-## 📁 Project Structure
-
-```
-├── src/                    # React source code
-├── public/                 # Static assets
-├── dist/                   # Build output
-├── azure-pipelines.yml     # CI/CD pipeline definition
-├── Dockerfile             # Container configuration
-├── package.json           # Node.js dependencies
-└── README.md              # This file
-```
-
-## 🔧 Pipeline Configuration
-
-The pipeline is defined in `azure-pipelines.yml` and includes:
-
-- **Parallel execution** of Docker and SonarQube stages
-- **Artifact management** for build outputs
-- **Security scanning** integration
-- **Automated cleanup** to prevent disk space issues
-- **Error handling** with `continueOnError` flags
-
-## 📈 Monitoring & Reporting
-
-- **Azure DevOps**: Pipeline execution logs and artifacts
-- **SonarQube Dashboard**: http://localhost:9000
-- **Trivy Reports**: Container vulnerability details
-- **Build Artifacts**: Stored in Azure DevOps
-
-## 🎯 Learning Outcomes
-
-This project demonstrates:
-- **CI/CD Pipeline Design**: Multi-stage pipeline architecture
-- **Security Integration**: Vulnerability scanning at multiple levels
-- **Quality Assurance**: Automated code quality checks
-- **DevOps Best Practices**: Secret management, artifact handling
-- **Containerization**: Docker image creation and scanning
+### Setup Steps
+1. **Clone a react repo/ create your own project** and look at the `azure-pipelines.yml` I provided
+2. **Set up SonarQube** locally: `docker run -d -p 9000:9000 sonarqube:latest`
+3. **Configure your Azure DevOps agent** (running my locally)
+4. **Create a Variable Group** STORE YOUR PAT TOKEN OR OTHER SECRETS TO AVOID HARDCODED 
+5. **Run the pipeline** and watch it 
