@@ -1,0 +1,104 @@
+trigger:
+- main
+
+pool:
+  name: '' -- Put your agent name (no dashes or underscores) 
+
+variables:
+- group: Local-Secrets  # Add this variable group - temp name for me was Local-Secrets
+- name: nodeVersion
+  value: '18.x'
+- name: imageName
+  value: '' -- Put your project name 
+
+stages:
+- stage: Build
+  displayName: 'Build and Test'
+  jobs:
+  - job: BuildJob
+    displayName: 'Build Vite React App'
+    steps:
+    
+    - task: NodeTool@0
+      displayName: 'Install Node.js'
+      inputs:
+        versionSpec: $(nodeVersion)
+    
+    - script: npm install
+      displayName: 'npm install'
+    
+    - script: npm audit --audit-level=high
+      displayName: 'Security Audit'
+      continueOnError: true
+    
+    - script: npm run build
+      displayName: 'Build Vite App'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Build Artifacts'
+      inputs:
+        pathToPublish: 'dist'
+        artifactName: 'vite-build'
+
+- stage: Docker
+  displayName: 'Docker Build and Scan'
+  dependsOn: Build
+  jobs:
+  - job: DockerJob
+    displayName: 'Build Docker Image'
+    steps:
+    
+    - script: docker build -t $(imageName):$(Build.BuildId) .
+      displayName: 'Build Docker Image'
+    
+    # Install and Run Trivy with JSON output
+    - powershell: |
+        Write-Host "Downloading Trivy..."
+        Invoke-WebRequest -Uri "https://github.com/aquasecurity/trivy/releases/download/v0.64.0/trivy_0.64.0_Windows-64bit.zip" -OutFile "trivy.zip"
+        Write-Host "Extracting Trivy..."
+        Expand-Archive -Path "trivy.zip" -DestinationPath "."
+        Write-Host "Testing Trivy installation..."
+        .\trivy --version
+        Write-Host "Running Trivy scan..."
+        .\trivy image --format json --output trivy-results.json --exit-code 0 --severity HIGH,CRITICAL $(imageName):$(Build.BuildId)
+      displayName: 'Install and Run Trivy'
+      continueOnError: true
+    
+    - script: docker images
+      displayName: 'List Docker Images'
+    
+    # Clean up old images and containers
+    - script: |
+        echo "Cleaning up Docker artifacts..."
+        docker system prune -f
+        docker image prune -f
+      displayName: 'Clean Up Docker'
+      condition: always()
+
+- stage: SonarQube
+  displayName: 'Code Quality Analysis'
+  dependsOn: Build
+  jobs:
+  - job: SonarJob
+    displayName: 'SonarQube Analysis'
+    steps:
+    
+    - task: NodeTool@0
+      displayName: 'Install Node.js'
+      inputs:
+        versionSpec: $(nodeVersion)
+    
+    # Install SonarQube Scanner
+    - script: npm install -g sonarqube-scanner
+      displayName: 'Install SonarQube Scanner'
+    
+    # Run SonarQube analysis with secure token
+    - script: |
+        sonar-scanner ^
+        -Dsonar.projectKey=react-devops-practice ^
+        -Dsonar.sources=src ^
+        -Dsonar.host.url=http://localhost:9000 ^
+        -Dsonar.login=$(SONAR_TOKEN) ^   -- this is where you call your Local_Secrets variable to use the secret. 
+        -Dsonar.exclusions=node_modules/**,dist/**,public/**
+      displayName: 'Run SonarQube Analysis'
+      continueOnError: true
